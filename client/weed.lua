@@ -3,53 +3,10 @@ local weedPlants = {}
 local isPickingUp, isProcessing, inWeedField = false, false, false
 local QBCore = exports['qb-core']:GetCoreObject()
 
-local function LoadAnimationDict(dict)
-    RequestAnimDict(dict)
-    while not HasAnimDictLoaded(dict) do
-        RequestAnimDict(dict)
-        Wait(1)
-    end
-end
-
-local function OpenDoorAnimation()
-    local ped = PlayerPedId()
-    LoadAnimationDict("anim@heists@keycard@") 
-    TaskPlayAnim(ped, "anim@heists@keycard@", "exit", 5.0, 1.0, -1, 16, 0, 0, 0, 0)
-    Wait(400)
-    ClearPedTasks(ped)
-end
-
-local function EnterWWarehouse()
-    local ped = PlayerPedId()
-    OpenDoorAnimation()
-    WWarehouse = true
-    Wait(500)
-    DoScreenFadeOut(250)
-    Wait(250)
-    SetEntityCoords(ped, Config.WeedLab["exit"].coords.x, Config.WeedLab["exit"].coords.y, Config.WeedLab["exit"].coords.z - 0.98)
-    SetEntityHeading(ped, Config.WeedLab["exit"].coords.w)
-    Wait(1000)
-    DoScreenFadeIn(250)
-end
-
-local function ExitWWarehouse()
-    local ped = PlayerPedId()
-    OpenDoorAnimation()
-    WWarehouse = true
-    Wait(500)
-    DoScreenFadeOut(250)
-    Wait(250)
-    SetEntityCoords(ped, Config.WeedLab["enter"].coords.x, Config.WeedLab["enter"].coords.y, Config.WeedLab["enter"].coords.z - 0.98)
-    SetEntityHeading(ped, Config.WeedLab["enter"].coords.w)
-    Wait(1000)
-    DoScreenFadeIn(250)
-	WWarehouse = false
-end
-
 local function ValidateWeedCoord(plantCoord)
 	local validate = true
 	if spawnedWeeds > 0 then
-		for _, v in pairs(weedPlants) do
+		for k, v in pairs(weedPlants) do
 			if #(plantCoord - GetEntityCoords(v)) < 5 then
 				validate = false
 			end
@@ -102,21 +59,19 @@ local function GenerateWeedCoords()
 end
 
 local function SpawnWeedPlants()
-	local model = `mw_weed_plant`
 	while spawnedWeeds < 15 do
 		Wait(0)
 		local weedCoords = GenerateWeedCoords()
-		RequestModel(model)
-		while not HasModelLoaded(model) do
+		RequestModel(`mw_weed_plant`)
+		while not HasModelLoaded(`mw_weed_plant`) do
 			Wait(100)
 		end
-		local obj = CreateObject(model, weedCoords.x, weedCoords.y, weedCoords.z, false, true, false)
+		local obj = CreateObject(`mw_weed_plant`, weedCoords.x, weedCoords.y, weedCoords.z, false, true, false)
 		PlaceObjectOnGroundProperly(obj)
 		FreezeEntityPosition(obj, true)
-		weedPlants[#weedPlants+1] = obj
+		table.insert(weedPlants, obj)
 		spawnedWeeds += 1
 	end
-	SetModelAsNoLongerNeeded(model)
 end
 
 local function RollJoint()
@@ -131,31 +86,6 @@ local function RollJoint()
 		disableCombat = true,
 	}, {}, {}, {}, function()
 		TriggerServerEvent('ps-drugprocessing:rollJoint')
-		local timeLeft = Config.Delays.WeedProcessing / 1000
-		while timeLeft > 0 do
-			Wait(1000)
-			timeLeft -= 1
-		end
-		ClearPedTasks(PlayerPedId())
-		isProcessing = false
-	end, function()
-		ClearPedTasks(PlayerPedId())
-		isProcessing = false
-	end)
-end
-
-local function BagSkunk()
-	isProcessing = true
-	local playerPed = PlayerPedId()
-
-	TaskStartScenarioInPlace(playerPed, "PROP_HUMAN_PARKING_METER", 0, true)
-	QBCore.Functions.Progressbar("search_register", Lang:t("progressbar.bagging_skunk"), 15000, false, true, {
-		disableMovement = true,
-		disableCarMovement = true,
-		disableMouse = false,
-		disableCombat = true,
-	}, {}, {}, {}, function()
-		TriggerServerEvent('ps-drugprocessing:bagskunk')
 		local timeLeft = Config.Delays.WeedProcessing / 1000
 		while timeLeft > 0 do
 			Wait(1000)
@@ -200,40 +130,12 @@ end
 
 RegisterNetEvent("ps-drugprocessing:processWeed",function()
 	QBCore.Functions.TriggerCallback('ps-drugprocessing:validate_items', function(result)
-		if result.ret then
+		if result then
 			ProcessWeed()
 		else
-			QBCore.Functions.Notify(Lang:t("error.no_item", {item = result.item}))
+			QBCore.Functions.Notify(Lang:t("error.no_cannabis"), 'error')
 		end
 	end,{cannabis = 1})
-end)
-
-RegisterNetEvent('ps-drugprocessing:EnterWWarehouse', function()
-	local ped = PlayerPedId()
-	local pos = GetEntityCoords(ped)
-    local dist = #(pos - vector3(Config.WeedLab["enter"].coords.x, Config.WeedLab["enter"].coords.y, Config.WeedLab["enter"].coords.z))
-    if dist < 2 then
-		if Config.KeyRequired then
-			QBCore.Functions.TriggerCallback('ps-drugprocessing:validate_items', function(result)
-				if result.ret then
-					EnterWWarehouse()
-				else
-					QBCore.Functions.Notify(Lang:t("error.no_item", {item = result.item}))
-				end
-			end, {weedkey=1})
-		else
-			EnterWWarehouse()
-		end
-	end
-end)
-
-RegisterNetEvent('ps-drugprocessing:ExitWWarehouse', function()
-	local ped = PlayerPedId()
-	local pos = GetEntityCoords(ped)
-    local dist = #(pos - vector3(Config.WeedLab["exit"].coords.x, Config.WeedLab["exit"].coords.y, Config.WeedLab["exit"].coords.z))
-    if dist < 2 then
-		ExitWWarehouse()
-	end
 end)
 
 RegisterNetEvent("ps-drugprocessing:pickWeed", function()
@@ -242,7 +144,7 @@ RegisterNetEvent("ps-drugprocessing:pickWeed", function()
 	local nearbyObject, nearbyID
 
 	for i=1, #weedPlants, 1 do
-		if #(coords - GetEntityCoords(weedPlants[i])) < 2 then
+		if GetDistanceBetweenCoords(coords, GetEntityCoords(weedPlants[i]), false) < 2 then
 			nearbyObject, nearbyID = weedPlants[i], i
 		end
 	end
@@ -260,7 +162,7 @@ RegisterNetEvent("ps-drugprocessing:pickWeed", function()
 				ClearPedTasks(PlayerPedId())
 				SetEntityAsMissionEntity(nearbyObject, false, true)
 				DeleteObject(nearbyObject)
-				weedPlants[nearbyID] = nil
+				table.remove(weedPlants, nearbyID)
 				spawnedWeeds -= 1
 				TriggerServerEvent('ps-drugprocessing:pickedUpCannabis')
 				isPickingUp = false
@@ -274,7 +176,7 @@ end)
 
 AddEventHandler('onResourceStop', function(resource)
 	if resource == GetCurrentResourceName() then
-		for _, v in pairs(weedPlants) do
+		for k, v in pairs(weedPlants) do
 			SetEntityAsMissionEntity(v, false, true)
 			DeleteObject(v)
 		end
@@ -283,20 +185,10 @@ end)
 
 RegisterNetEvent('ps-drugprocessing:client:rollJoint', function()
     QBCore.Functions.TriggerCallback('ps-drugprocessing:validate_items', function(result)
-		if result.ret then
+		if result then
 			RollJoint()
 		else
-			QBCore.Functions.Notify(Lang:t("error.no_item", {item = result.item}))
-		end
-	end, {marijuana = 1})
-end)
-
-RegisterNetEvent('ps-drugprocessing:client:bagskunk', function()
-    QBCore.Functions.TriggerCallback('ps-drugprocessing:validate_items', function(result)
-		if result.ret then
-			BagSkunk()
-		else
-			QBCore.Functions.Notify(Lang:t("error.no_item", {item = result.item}))
+			QBCore.Functions.Notify(Lang:t("error.no_marijuhana"), 'error')
 		end
 	end, {marijuana = 1})
 end)
@@ -315,3 +207,68 @@ CreateThread(function()
         end
     end)
 end)
+
+
+--weed lab enter--
+
+RegisterNetEvent("qb-weedplant:EnterWeedLab", function()
+	QBCore.Functions.TriggerCallback('QBCore:HasItem', function(hasItem)
+	if hasItem then
+		TriggerServerEvent("ps-weedplanting:RemoveWeedkey")
+		DoScreenFadeOut(500)
+			while not IsScreenFadedOut() do	Citizen.Wait(10) end
+			SetEntityCoords(PlayerPedId(), vector4(1065.88, -3183.51, -39.16, 95.11))
+			FreezeEntityPosition(PlayerPedId(), true)
+			Wait(2000)
+			DoScreenFadeIn(500)
+			FreezeEntityPosition(PlayerPedId(), false)
+	else
+			QBCore.Functions.Notify("You dont have the required items", "error")
+		end
+	  end, 'cocainekey')
+	end)
+	
+	
+	RegisterNetEvent("qb-weedplant:ExitWeedLab", function()
+		DoScreenFadeOut(500)
+		while not IsScreenFadedOut() do	Citizen.Wait(10) end
+		SetEntityCoords(PlayerPedId(), vector4(-38.24, 1908.26, 195.36, 288.22))
+		DoScreenFadeIn(500)
+	end)
+	
+	
+	exports['qb-target']:AddBoxZone("Enter-weedLab", vector3(-39.58, 1908.1, 195.36), 1.6, 1, {
+		name = "Enter-weedLab",
+		heading = 5,
+		debugPoly = false,
+		minZ = 192.96,
+		maxZ = 196.96,
+	}, {
+		options = {
+			{
+				type = "client",
+				event = "qb-weedplant:EnterWeedLab",
+				icon = "fas fa-cannabis",
+				label = "Enter Weed Lab",
+			},
+		},
+		distance = 2.5
+	})
+	
+	exports['qb-target']:AddBoxZone("Exit-Lab", vector3(1066.63, -3183.42, -39.16), 1.7, 0.2, {
+		name = "Exit-Lab",
+		heading = 0,
+		debugPoly = false,
+		minZ = -41.76,
+		maxZ = -37.76,
+	}, {
+		options = {
+			{
+				type = "client",
+				event = "qb-weedplant:ExitWeedLab",
+				icon = "fas fa-cannabis",
+				label = "Exit Weed Lab",
+			},
+		},
+		distance = 2.5
+	})

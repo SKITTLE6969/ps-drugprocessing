@@ -77,10 +77,10 @@ CreateThread(function()
             end
             if IsControlJustReleased(0, 38) and not isProcessing then
 				QBCore.Functions.TriggerCallback('ps-drugprocessing:validate_items', function(result)
-					if result.ret then
+					if result then
                         Processlsd()
 					else
-						QBCore.Functions.Notify(Lang:t("error.no_item", {item = result.item}))
+						QBCore.Functions.Notify(Lang:t("error.not_all_items"), 'error')
 					end
 				end, {lsa = 1, thionyl_chloride = 1})
             end
@@ -96,12 +96,76 @@ RegisterNetEvent('ps-drugprocessing:processingThiChlo', function()
 	if #(coords-Config.CircleZones.thionylchlorideProcessing.coords) < 5 then
 		if not isProcessing then
 			QBCore.Functions.TriggerCallback('ps-drugprocessing:validate_items', function(result)
-				if result.ret then
+				if result then
 					Processthionylchloride()
 				else
-					QBCore.Functions.Notify(Lang:t("error.no_item", {item = result.item}))
+					QBCore.Functions.Notify(Lang:t("error.not_all_items"), 'error')
 				end
 			end, {lsa = 1, chemicals = 1})
 		end
 	end
 end)
+
+--lsd lab enter--
+
+RegisterNetEvent("qb-weedplant:EnterLsdLab", function()
+	QBCore.Functions.TriggerCallback('QBCore:HasItem', function(hasItem)
+	if hasItem then
+		TriggerServerEvent("ps-weedplanting:RemoveLsdkey")
+		DoScreenFadeOut(500)
+			while not IsScreenFadedOut() do	Citizen.Wait(10) end
+			SetEntityCoords(PlayerPedId(), vector4(887.33, -955.29, 39.28, 171.17))
+			FreezeEntityPosition(PlayerPedId(), true)
+			Wait(2000)
+			DoScreenFadeIn(500)
+			FreezeEntityPosition(PlayerPedId(), false)
+	else
+			QBCore.Functions.Notify("You dont have the required keys", "error")
+		end
+	  end, 'cocainekey')
+	end)
+	
+	
+	RegisterNetEvent("qb-weedplant:ExitLsdLab", function()
+		DoScreenFadeOut(500)
+		while not IsScreenFadedOut() do	Citizen.Wait(10) end
+		SetEntityCoords(PlayerPedId(), vector4(812.86, -911.53, 25.44, 191.89))
+		DoScreenFadeIn(500)
+	end)
+	
+	
+	exports['qb-target']:AddBoxZone("Enter-LsdLab", vector3(812.74, -910.41, 25.61), 2, 0.6, {
+		name = "Enter-LsdLab",
+		heading = 270,
+		debugPoly = false,
+		minZ = 23.01,
+		maxZ = 27.01,
+	}, {
+		options = {
+			{
+				type = "client",
+				event = "qb-weedplant:EnterLsdLab",
+				icon = "fas fa-key",
+				label = "Enter Lsd Lab",
+			},
+		},
+		distance = 2.5
+	})
+	
+	exports['qb-target']:AddBoxZone("Exit-LsdLab", vector3(887.38, -954.23, 39.28), 1.5, 0.5, {
+		name = "Exit-LsdLab",
+		heading = 270,
+		debugPoly = false,
+		minZ = 36.48,
+		maxZ = 40.48,
+	}, {
+		options = {
+			{
+				type = "client",
+				event = "qb-weedplant:ExitLsdLab",
+				icon = "fas fa-lock",
+				label = "Exit Lsd Lab",
+			},
+		},
+		distance = 2.5
+	})

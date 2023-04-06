@@ -83,18 +83,13 @@ QBCore.Functions.CreateCallback('ps-drugprocessing:validate_items', function(sou
     local Player = QBCore.Functions.GetPlayer(source)
     if not Player then return end
 
-	local hasItems = {
-		ret = true,
-		items = {}
-	}
+	local hasItems = true
 	for name,amount in pairs(data) do
 		local item = Player.Functions.GetItemByName(name)
 		if not item or item and item.amount < amount then
-			hasItems.ret = false
-			hasItems.items[#hasItems.items+1] = QBCore.Shared.Items[name].label
+			hasItems = false
 		end
 		if not hasItems then break end
 	end
-	hasItems.item = table.concat(hasItems.items, ", ")
 	cb(hasItems)
 end)

@@ -14,10 +14,11 @@ RegisterServerEvent('ps-drugprocessing:processCannabis', function()
 	local src = source
     local Player = QBCore.Functions.GetPlayer(src)
 
-	if Player.Functions.RemoveItem('cannabis', 1) then
-		if Player.Functions.AddItem('marijuana', 1) then
+	if Player.Functions.RemoveItem('empty_weed_bag', 1) and Player.Functions.RemoveItem('cannabis', 1) then
+		if Player.Functions.AddItem('weed_amnesia', 1) then
+			TriggerClientEvent("inventory:client:ItemBox", source, QBCore.Shared.Items['empty_weed_bag'], "remove")
 			TriggerClientEvent("inventory:client:ItemBox", source, QBCore.Shared.Items['cannabis'], "remove")
-			TriggerClientEvent("inventory:client:ItemBox", source, QBCore.Shared.Items['marijuana'], "add")
+			TriggerClientEvent("inventory:client:ItemBox", source, QBCore.Shared.Items['weed_amnesia'], "add")
 			TriggerClientEvent('QBCore:Notify', src, Lang:t("success.marijuana"), "success")
 		else
 			Player.Functions.AddItem('cannabis', 1)
@@ -55,30 +56,10 @@ QBCore.Functions.CreateUseableItem("rolling_paper", function(source, item)
     TriggerClientEvent('ps-drugprocessing:client:rollJoint', source, 'marijuana', item)
 end)
 
-RegisterServerEvent('ps-drugprocessing:bagskunk', function()
-	local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+---weed lab enter--
 
-	if Player.Functions.RemoveItem('marijuana', 1) then
-		if Player.Functions.RemoveItem('empty_weed_bag', 1) then
-			if Player.Functions.AddItem('weed_skunk', 1) then
-				TriggerClientEvent("inventory:client:ItemBox", source, QBCore.Shared.Items['marijuana'], "remove")
-				TriggerClientEvent("inventory:client:ItemBox", source, QBCore.Shared.Items['empty_weed_bag'], "remove")
-				TriggerClientEvent("inventory:client:ItemBox", source, QBCore.Shared.Items['weed_skunk'], "add")
-				TriggerClientEvent('QBCore:Notify', src, Lang:t("success.baggy"), "success")
-			else
-				Player.Functions.AddItem('marijuana', 1)
-				Player.Functions.AddItem('empty_weed_bag', 1)
-			end
-		else
-			Player.Functions.AddItem('marijuana', 1)
-		end
-	else
-		TriggerClientEvent('QBCore:Notify', src, Lang:t("error.no_marijuhana"), "error")
-	end
-end)
-
-QBCore.Functions.CreateUseableItem("empty_weed_bag", function(source, item)
-    local Player = QBCore.Functions.GetPlayer(source)
-    TriggerClientEvent('ps-drugprocessing:client:bagskunk', source, 'marijuana', item)
+RegisterServerEvent('ps-weedplanting:RemoveWeedkey', function()
+	local Player = QBCore.Functions.GetPlayer(source)
+	Player.Functions.RemoveItem('cocainekey', 1)
+	TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items['cocainekey'], "Remove", 1)
 end)

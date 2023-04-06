@@ -82,7 +82,7 @@ end
 local function ValidateCocaLeafCoord(plantCoord)
 	local validate = true
 	if spawnedCocaLeaf > 0 then
-		for _, v in pairs(CocaPlants) do
+		for k, v in pairs(CocaPlants) do
 			if #(plantCoord - GetEntityCoords(v)) < 5 then
 				validate = false
 			end
@@ -135,21 +135,19 @@ local function GenerateCocaLeafCoords()
 end
 
 local function SpawnCocaPlants()
-	local model = `h4_prop_bush_cocaplant_01`
-    while spawnedCocaLeaf < 15 do
-        Wait(0)
-        local weedCoords = GenerateCocaLeafCoords()
-        RequestModel(model)
-        while not HasModelLoaded(model) do
-            Wait(100)
-        end
-        local obj = CreateObject(model, weedCoords.x, weedCoords.y, weedCoords.z, false, true, false)
-        PlaceObjectOnGroundProperly(obj)
-        FreezeEntityPosition(obj, true)
-		CocaPlants[#CocaPlants+1] = obj
-        spawnedCocaLeaf += 1
-    end
-	SetModelAsNoLongerNeeded(model)
+	while spawnedCocaLeaf < 15 do
+		Wait(0)
+		local weedCoords = GenerateCocaLeafCoords()
+		RequestModel('prop_plant_fern_02a')
+		while not HasModelLoaded('prop_plant_fern_02a') do
+			Wait(100)
+		end
+		local obj = CreateObject('prop_plant_fern_02a', weedCoords.x, weedCoords.y, weedCoords.z, false, true, false)
+		PlaceObjectOnGroundProperly(obj)
+		FreezeEntityPosition(obj, true)
+		table.insert(CocaPlants, obj)
+		spawnedCocaLeaf += 1
+	end
 end
 
 
@@ -221,10 +219,10 @@ RegisterNetEvent('ps-drugprocessing:ProcessCocaFarm', function()
 	if #(coords-Config.CircleZones.CokeProcessing.coords) < 5 then
 		if not isProcessing then
 			QBCore.Functions.TriggerCallback('ps-drugprocessing:validate_items', function(result)
-				if result.ret then
+				if result then
 					ProcessCoke()
 				else
-					QBCore.Functions.Notify(Lang:t("error.no_item", {item = result.item}))
+					QBCore.Functions.Notify(Lang:t("error.no_coca_leaf"), 'error')
 				end
 			end, {coca_leaf = Config.CokeProcessing.CokeLeaf, trimming_scissors = 1})
 		end
@@ -244,10 +242,10 @@ RegisterNetEvent('ps-drugprocessing:ProcessCocaPowder', function()
 				finescale = 1
 			}
 			QBCore.Functions.TriggerCallback('ps-drugprocessing:validate_items', function(result)
-				if result.ret then
+				if result then
 					CutCokePowder()
 				else
-					QBCore.Functions.Notify(Lang:t("error.no_item", {item = result.item}))
+					QBCore.Functions.Notify(Lang:t("error.not_all_items"), 'error')
 				end
 			end, check)
 		else
@@ -263,10 +261,10 @@ RegisterNetEvent('ps-drugprocessing:ProcessBricks', function()
 	if #(coords-Config.CircleZones.CokeBrick.coords) < 5 then
 		if not isProcessing then
 			QBCore.Functions.TriggerCallback('ps-drugprocessing:validate_items', function(result)
-				if result.ret then
+				if result then
 					ProcessBricks()
 				else
-					QBCore.Functions.Notify(Lang:t("error.no_item", {item = result.item}))
+					QBCore.Functions.Notify(Lang:t("error.not_all_items"), 'error')
 				end
 			end, {coke_small_brick = Config.CokeProcessing.SmallBrick, finescale = 1})
 		else
@@ -280,17 +278,14 @@ RegisterNetEvent('ps-drugprocessing:EnterCWarehouse', function()
 	local pos = GetEntityCoords(ped)
     local dist = #(pos - vector3(Config.CokeLab["enter"].coords.x, Config.CokeLab["enter"].coords.y, Config.CokeLab["enter"].coords.z))
     if dist < 2 then
-		if Config.KeyRequired then
-			QBCore.Functions.TriggerCallback('ps-drugprocessing:validate_items', function(result)
-				if result.ret then
-					EnterCWarehouse()
-				else
-					QBCore.Functions.Notify(Lang:t("error.no_item", {item = result.item}))
-				end
-			end, { cocainekey = 1 } )
-		else
-			EnterCWarehouse()
-		end
+		QBCore.Functions.TriggerCallback('ps-drugprocessing:validate_items', function(result)
+			if result then
+				TriggerServerEvent("ps-drugprocessing:RemoveCWarehouse")
+				EnterCWarehouse()
+			else
+				QBCore.Functions.Notify(Lang:t("error.not_all_items"), 'error')
+			end
+		end, {cocainekey=1})
 	end
 end)
 
@@ -309,7 +304,7 @@ RegisterNetEvent('ps-drugprocessing:pickCocaLeaves', function()
 	local nearbyObject, nearbyID
 
 	for i=1, #CocaPlants, 1 do
-		if #(coords - GetEntityCoords(CocaPlants[i])) < 2 then
+		if GetDistanceBetweenCoords(coords, GetEntityCoords(CocaPlants[i]), false) < 2 then
 			nearbyObject, nearbyID = CocaPlants[i], i
 		end
 	end
@@ -318,6 +313,7 @@ RegisterNetEvent('ps-drugprocessing:pickCocaLeaves', function()
 		if not isPickingUp then
 			isPickingUp = true
 			TaskStartScenarioInPlace(playerPed, 'world_human_gardener_plant', 0, false)
+
 			QBCore.Functions.Progressbar("search_register", Lang:t("progressbar.collecting"), 10000, false, true, {
 				disableMovement = true,
 				disableCarMovement = true,
@@ -328,7 +324,7 @@ RegisterNetEvent('ps-drugprocessing:pickCocaLeaves', function()
 				SetEntityAsMissionEntity(nearbyObject, false, true)
 				DeleteObject(nearbyObject)
 
-				CocaPlants[nearbyID] = nil
+				table.remove(CocaPlants, nearbyID)
 				spawnedCocaLeaf = spawnedCocaLeaf - 1
 
 				TriggerServerEvent('ps-drugprocessing:pickedUpCocaLeaf')
@@ -344,7 +340,7 @@ end)
 
 AddEventHandler('onResourceStop', function(resource)
 	if resource == GetCurrentResourceName() then
-		for _, v in pairs(CocaPlants) do
+		for k, v in pairs(CocaPlants) do
 			SetEntityAsMissionEntity(v, false, true)
 			DeleteObject(v)
 		end
@@ -352,7 +348,7 @@ AddEventHandler('onResourceStop', function(resource)
 end)
 
 RegisterCommand('propfix', function()
-    for _, v in pairs(GetGamePool('CObject')) do
+    for k, v in pairs(GetGamePool('CObject')) do
         if IsEntityAttachedToEntity(PlayerPedId(), v) then
             SetEntityAsMissionEntity(v, true, true)
             DeleteObject(v)

@@ -17,6 +17,8 @@ RegisterServerEvent('ps-drugprocessing:processPoppyResin', function()
 	if Player.Functions.RemoveItem('poppyresin', Config.HeroinProcessing.Poppy) then
 		if Player.Functions.AddItem('heroin', 1) then
 			TriggerClientEvent("inventory:client:ItemBox", source, QBCore.Shared.Items['poppyresin'], "remove", Config.HeroinProcessing.Poppy)
+			Player.Functions.RemoveItem('empty_weed_bag', 1)
+			TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items['empty_weed_bag'], "Remove", 1)
 			TriggerClientEvent("inventory:client:ItemBox", source, QBCore.Shared.Items['heroin'], "add")
 			TriggerClientEvent('QBCore:Notify', src, Lang:t("success.heroin"), "success")
 		else
@@ -25,4 +27,12 @@ RegisterServerEvent('ps-drugprocessing:processPoppyResin', function()
 	else
 		TriggerClientEvent('QBCore:Notify', src, Lang:t("error.no_poppy_resin"), "error")
 	end
+end)
+
+---heroin lab enter--
+
+RegisterServerEvent('ps-weedplanting:RemoveHeroinkey', function()
+	local Player = QBCore.Functions.GetPlayer(source)
+	Player.Functions.RemoveItem('cocainekey', 1)
+	TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items['cocainekey'], "Remove", 1)
 end)

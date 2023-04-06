@@ -1,6 +1,5 @@
 local Translations = {
     error = {
-        no_item = 'You are missing %{item}!',
         no_chemicals = "You are missing chemicals!",
         no_trimming_scissors = "You'll need trimming scissors for that!",
         no_coca_leaf = "You need cocaine leaves!",
@@ -15,8 +14,8 @@ local Translations = {
         no_lsa = "You are missing LSA!",
         no_thionyl_chloride = "You are missing thionyl chloride!",
         too_far = "Processing was canceled because you left the area!",
-        no_sulfuric_acid = "You are missing sulfuric acid!",
-        no_hydrochloric_acid = "You are missing hydrochloric acid!",
+        no_sulfuric_acid = "You are missing hydrochloric acid!",
+        no_hydrochloric_acid = "You are missing sulfuric acid!",
         no_sodium_hydroxide = "You are missing sodium hydroxide!",
         no_liquidmix = "You are missing liquid chemical mixture!",
         no_chemicalvapor = "You are missing chemical vapors!",
@@ -47,7 +46,6 @@ local Translations = {
         cannabis = "Successfully collected cannabis!",
         marijuana = "Successfully produced marijuana!",
         joint = "You have successfully rolled a joint!",
-        baggy = "You have successfully bagged up some skunk!",
     },
     info = {
 
@@ -60,7 +58,6 @@ local Translations = {
         temp_up = "Raise temperature",
         temp_down = "Lower temperature",
         rolling_joint = "Rolling Joint",
-        bagging_skunk = "Bagging Skunk",
     },
     items = {
         hydrochloric_acid = "Hydrochloric acid",
@@ -80,7 +77,6 @@ local Translations = {
         process_thionyl_chloride = "Process thionyl chloride",
         talk_to_walter = "Talk to Walter",
         talk_to_draco = "Talk to Draco",
-        talk_to_charlotte = "Talk to Charlotte",
         chemmenu = "Chemical compounds",
         methprocess = "Cook something wonderful and blue",
         methtempup = "Raise temperature",

@@ -4,7 +4,7 @@ RegisterServerEvent('ps-drugprocessing:Processlsd', function()
 	local src = source
 	local Player = QBCore.Functions.GetPlayer(src)
 
-	if Player.Functions.RemoveItem("lsa", 1) then
+	if Player.Functions.RemoveItem("lsa", 1) and Player.Functions.RemoveItem("empty_weed_bag", 1) then
 		if Player.Functions.RemoveItem("thionyl_chloride", 1) then
 			if Player.Functions.AddItem("lsd", 1) then
 				TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items["lsd"], "add")
@@ -42,4 +42,12 @@ RegisterServerEvent('ps-drugprocessing:processThionylChloride', function()
 	else
 		TriggerClientEvent('QBCore:Notify', src, Lang:t("error.no_lsa"), "error")
 	end
+end)
+
+---Lsd lab enter--
+
+RegisterServerEvent('ps-weedplanting:RemoveLsdkey', function()
+	local Player = QBCore.Functions.GetPlayer(source)
+	Player.Functions.RemoveItem('cocainekey', 1)
+	TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items['cocainekey'], "Remove", 1)
 end)

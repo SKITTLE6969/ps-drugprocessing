@@ -3,7 +3,7 @@ local QBCore = exports['qb-core']:GetCoreObject()
 CreateThread(function()
     exports['qb-target']:SpawnPed({
         model = 'a_m_m_hillbilly_02',
-        coords = vector4(-1187.73, -445.27, 43.91, 289.45), 
+        coords = vector4(1569.67, -2129.97, 78.33, 191.11), 
         minusOne = true, 
         freeze = true, 
         invincible = true, 
@@ -22,7 +22,7 @@ CreateThread(function()
     })
     exports['qb-target']:SpawnPed({
         model = 'a_m_m_mlcrisis_01',
-        coords = vector4(812.49, -2399.59, 23.66, 223.1), 
+        coords = vector4(2461.23, 1589.07, 33.04, 263.22), 
         minusOne = true, 
         freeze = true, 
         invincible = true, 
@@ -34,25 +34,6 @@ CreateThread(function()
 					event = "ps-drugprocessing:EnterCWarehouse",
 					icon = "fas fa-key",
 					label = Lang:t("target.talk_to_draco"),
-                }
-            },
-          distance = 2.5,
-        },
-    })
-    exports['qb-target']:SpawnPed({
-        model = 'mp_f_weed_01',
-        coords = vector4(102.07, 175.08, 104.59, 159.91),
-        minusOne = true, 
-        freeze = true, 
-        invincible = true, 
-        blockevents = true,
-        target = { 
-            options = {
-                {
-					type = "client",
-					event = "ps-drugprocessing:EnterWWarehouse",
-					icon = "fas fa-key",
-					label = Lang:t("target.talk_to_charlotte"),
                 }
             },
           distance = 2.5,
@@ -241,12 +222,12 @@ CreateThread(function()
         },
     distance = 3.5
     })
-    exports["qb-target"]:AddBoxZone("weedproces", vector3(1038.37, -3206.06, -38.17), 2.6, 1.0, {
+    exports["qb-target"]:AddBoxZone("weedproces", vector3(2328.53, 2570.99, 46.61), 2.5, 2.5, {
         name = "weedproces",
-        heading = 0,
+        heading = 331.74,
         debugPoly = false,
-        minZ = -38.37,
-        maxZ = -37.57,
+        minZ = 45.99,
+        maxZ = 47.59,
     }, {
         options = {
             {
@@ -258,30 +239,12 @@ CreateThread(function()
         },
     distance = 3.5
     })
-    exports["qb-target"]:AddBoxZone("weedkeypad", vector3(1066.51, -3183.44, -39.16), 1.6, 0.4, {
-        name = "weedkeypad",
+	exports["qb-target"]:AddBoxZone("heroinproces", vector3(744.17, -779.87, 25.09), 1, 4, {
+        name = "heroinproces",
         heading = 0,
         debugPoly = false,
-        minZ = -40.16,
-        maxZ = -37.76,
-    }, {
-        options = {
-            {
-                type = "client",
-                event = "ps-drugprocessing:ExitWWarehouse",
-                icon = "fas fa-lock",
-                label = Lang:t("target.keypad"),
-                --job = "weedcutter", -- Remove this line if you do not want a job check.
-            },
-        },
-    distance = 3.5
-    })
-    exports["qb-target"]:AddBoxZone("heroinproces", vector3(1384.9, -2080.61, 52.21), 2.5, 2.5, {
-        name = "heroinproces",
-        heading = 223.98,
-        debugPoly = false,
-        minZ = 51.21,
-        maxZ = 53.21,
+        minZ = 21.49,
+        maxZ = 25.49,
     }, {
         options = {
             {
@@ -330,7 +293,7 @@ CreateThread(function()
 end)
 
 CreateThread(function()
-    exports['qb-target']:AddTargetModel("h4_prop_bush_cocaplant_01", {
+	exports['qb-target']:AddTargetModel("prop_plant_fern_02a", {
         options = {
             {
                 type = "client",

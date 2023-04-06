@@ -1,12 +1,21 @@
+
+shared_script '@waveshield/waveshield.lua' --this line was automatically written by WaveShield
+
+
+
+
+
+
+
 fx_version 'cerulean'
 
 games { 'gta5' }
 
 lua54 'yes'
 
-description 'QB Drug Trafficing by Project Sloth'
+description 'Ceylon Drug Trafficing by Project Sloth'
 
-version '1.3'
+version '1.0.0'
 
 shared_scripts {
 	'@PolyZone/client.lua',
@@ -25,7 +34,6 @@ server_scripts {
 	'server/chemicals.lua',
 	'server/lisenceshop.lua',
 	'server/moneywash.lua',
-	'server/versioncheck.lua'
 }
 
 client_scripts {

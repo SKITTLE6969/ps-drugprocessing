@@ -6,7 +6,7 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local function ValidateHeroinCoord(plantCoord)
 	local validate = true
 	if spawnedPoppys > 0 then
-		for _, v in pairs(PoppyPlants) do
+		for k, v in pairs(PoppyPlants) do
 			if #(plantCoord - GetEntityCoords(v)) < 5 then
 				validate = false
 			end
@@ -59,21 +59,19 @@ local function GenerateHeroinCoords()
 end
 
 local function SpawnPoppyPlants()
-	local model = `prop_plant_01b`
 	while spawnedPoppys < 15 do
 		Wait(0)
 		local heroinCoords = GenerateHeroinCoords()
-		RequestModel(model)
-		while not HasModelLoaded(model) do
+		RequestModel(`prop_plant_01b`)
+		while not HasModelLoaded(`prop_plant_01b`) do
 			Wait(100)
 		end
-		local obj = CreateObject(model, heroinCoords.x, heroinCoords.y, heroinCoords.z, false, true, false)
+		local obj = CreateObject(`prop_plant_01b`, heroinCoords.x, heroinCoords.y, heroinCoords.z, false, true, false)
 		PlaceObjectOnGroundProperly(obj)
 		FreezeEntityPosition(obj, true)
-		PoppyPlants[#PoppyPlants+1] = obj
+		table.insert(PoppyPlants, obj)
 		spawnedPoppys += 1
 	end
-	SetModelAsNoLongerNeeded(model)
 end
 
 local function ProcessHeroin()
@@ -113,10 +111,10 @@ RegisterNetEvent('ps-drugprocessing:ProcessPoppy', function()
 	if #(coords-Config.CircleZones.HeroinProcessing.coords) < 5 then
 		if not isProcessing then
 			QBCore.Functions.TriggerCallback('ps-drugprocessing:validate_items', function(result)
-				if result.ret then
+				if result then
 					ProcessHeroin()
 				else
-					QBCore.Functions.Notify(Lang:t("error.no_item", {item = result.item}))
+					QBCore.Functions.Notify(Lang:t("error.not_all_items"), 'error')
 				end
 			end, {poppyresin = Config.HeroinProcessing.Poppy})
 		end
@@ -124,13 +122,19 @@ RegisterNetEvent('ps-drugprocessing:ProcessPoppy', function()
 end)
 
 RegisterNetEvent("ps-drugprocessing:processHeroin",function()
+	QBCore.Functions.TriggerCallback('QBCore:HasItem', function(hasItem)
+        if hasItem then
 	QBCore.Functions.TriggerCallback('ps-drugprocessing:validate_items', function(result)
-		if result.ret then
+		if result then
 			ProcessHeroin()
 		else
-			QBCore.Functions.Notify(Lang:t("error.no_item", {item = result.item}))
+			QBCore.Functions.Notify(Lang:t("no poppy resin"), 'error')
 		end
 	end, {poppyresin = Config.HeroinProcessing.Poppy})
+	else
+		QBCore.Functions.Notify('no empty weed bag', "error")
+	end
+  	end, 'empty_weed_bag') 
 end)
 
 
@@ -140,7 +144,7 @@ RegisterNetEvent("ps-drugprocessing:pickHeroin", function()
 	local nearbyObject, nearbyID
 
 	for i=1, #PoppyPlants, 1 do
-		if #(coords - GetEntityCoords(PoppyPlants[i])) < 2 then
+		if GetDistanceBetweenCoords(coords, GetEntityCoords(PoppyPlants[i]), false) < 2 then
 			nearbyObject, nearbyID = PoppyPlants[i], i
 		end
 	end
@@ -158,7 +162,7 @@ RegisterNetEvent("ps-drugprocessing:pickHeroin", function()
 			SetEntityAsMissionEntity(nearbyObject, false, true)
 			DeleteObject(nearbyObject)
 
-			PoppyPlants[nearbyID] = nil
+			table.remove(PoppyPlants, nearbyID)
 			spawnedPoppys -= 1
 
 			TriggerServerEvent('ps-drugprocessing:pickedUpPoppy')
@@ -173,7 +177,7 @@ end)
 
 AddEventHandler('onResourceStop', function(resource)
 	if resource == GetCurrentResourceName() then
-		for _, v in pairs(PoppyPlants) do
+		for k, v in pairs(PoppyPlants) do
 			SetEntityAsMissionEntity(v, false, true)
 			DeleteObject(v)
 		end
@@ -194,3 +198,67 @@ CreateThread(function()
         end
     end)
 end)
+
+--heroin lab enter--
+
+RegisterNetEvent("qb-weedplant:EnterHeroinLab", function()
+	QBCore.Functions.TriggerCallback('QBCore:HasItem', function(hasItem)
+	if hasItem then
+		TriggerServerEvent("ps-weedplanting:RemoveHeroinkey")
+		DoScreenFadeOut(500)
+			while not IsScreenFadedOut() do	Citizen.Wait(10) end
+			SetEntityCoords(PlayerPedId(), vector4(729.53, -778.04, 25.09, 284.06))
+			FreezeEntityPosition(PlayerPedId(), true)
+			Wait(2000)
+			DoScreenFadeIn(500)
+			FreezeEntityPosition(PlayerPedId(), false)
+	else
+			QBCore.Functions.Notify("You dont have the required keys", "error")
+		end
+	  end, 'cocainekey')
+	end)
+	
+	
+	RegisterNetEvent("qb-weedplant:ExitHeroinLab", function()
+		DoScreenFadeOut(500)
+		while not IsScreenFadedOut() do	Citizen.Wait(10) end
+		SetEntityCoords(PlayerPedId(), vector4(895.77, -896.23, 27.8, 91.22))
+		DoScreenFadeIn(500)
+	end)
+	
+	
+	exports['qb-target']:AddBoxZone("Enter-HeroinLab", vector3(896.41, -896.27, 27.79), 1, 0.5, {
+		name = "Enter-HeroinLab",
+		heading = 0,
+		debugPoly = false,
+		minZ = 25.19,
+		maxZ = 29.19,
+	}, {
+		options = {
+			{
+				type = "client",
+				event = "qb-weedplant:EnterHeroinLab",
+				icon = "fas fa-key",
+				label = "Enter Heroin Lab",
+			},
+		},
+		distance = 2.5
+	})
+	
+	exports['qb-target']:AddBoxZone("Exit-HeroinLab", vector3(728.22, -777.93, 25.09), 1.4, 0.6, {
+		name = "Exit-HeroinLab",
+		heading = 0,
+		debugPoly = false,
+		minZ = 22.69,
+		maxZ = 26.69,
+	}, {
+		options = {
+			{
+				type = "client",
+				event = "qb-weedplant:ExitHeroinLab",
+				icon = "fas fa-lock",
+				label = "Exit Heroin Lab",
+			},
+		},
+		distance = 2.5
+	})

@@ -7,7 +7,7 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local function ValidateHydrochloricAcidCoord(plantCoord)
 	local validate = true
 	if spawnedHydrochloricAcidBarrels > 0 then
-		for _, v in pairs(HydrochloricAcidBarrels) do
+		for k, v in pairs(HydrochloricAcidBarrels) do
 			if #(plantCoord-GetEntityCoords(v)) < 5 then
 				validate = false
 			end
@@ -60,21 +60,19 @@ local function GenerateHydrochloricAcidCoords()
 end
 
 local function SpawnHydrochloricAcidBarrels()
-	local model = `mw_hydro_barrel`
 	while spawnedHydrochloricAcidBarrels < 5 do
 		Wait(0)
 		local weedCoords = GenerateHydrochloricAcidCoords()
-		RequestModel(model)
-		while not HasModelLoaded(model) do
+		RequestModel(`mw_hydro_barrel`)
+		while not HasModelLoaded(`mw_hydro_barrel`) do
 			Wait(100)
 		end
-		local obj = CreateObject(model, weedCoords.x, weedCoords.y, weedCoords.z, false, true, false)
+		local obj = CreateObject(`mw_hydro_barrel`, weedCoords.x, weedCoords.y, weedCoords.z, false, true, false)
 		PlaceObjectOnGroundProperly(obj)
 		FreezeEntityPosition(obj, true)
-		HydrochloricAcidBarrels[#HydrochloricAcidBarrels+1] = obj
+		table.insert(HydrochloricAcidBarrels, obj)
 		spawnedHydrochloricAcidBarrels = spawnedHydrochloricAcidBarrels + 1
 	end
-	SetModelAsNoLongerNeeded(model)
 end
 
 RegisterNetEvent("ps-drugprocessing:client:hydrochloricacid", function()
@@ -101,7 +99,7 @@ RegisterNetEvent("ps-drugprocessing:client:hydrochloricacid", function()
 			SetEntityAsMissionEntity(nearbyObject, false, true)
 			DeleteObject(nearbyObject)
 
-			HydrochloricAcidBarrels[nearbyID] = nil
+			table.remove(HydrochloricAcidBarrels, nearbyID)
 			spawnedHydrochloricAcidBarrels -= 1
 
 			TriggerServerEvent('ps-drugprocessing:pickedUpHydrochloricAcid')
@@ -115,7 +113,7 @@ end)
 
 AddEventHandler('onResourceStop', function(resource)
 	if resource == GetCurrentResourceName() then
-		for _, v in pairs(HydrochloricAcidBarrels) do
+		for k, v in pairs(HydrochloricAcidBarrels) do
 			SetEntityAsMissionEntity(v, false, true)
 			DeleteObject(v)
 		end

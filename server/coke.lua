@@ -57,13 +57,21 @@ RegisterServerEvent('ps-drugprocessing:processCocaBrick', function()
 	local src = source
     local Player = QBCore.Functions.GetPlayer(src)
 
-	if Player.Functions.RemoveItem('coke_small_brick', Config.CokeProcessing.SmallBrick) then
-		if Player.Functions.AddItem('coke_brick', Config.CokeProcessing.LargeBrick) then
+	if Player.Functions.RemoveItem('coke_small_brick', 1) and Player.Functions.RemoveItem('empty_weed_bag', 5) then
+		if Player.Functions.AddItem('cokebaggy', 5) then
 			TriggerClientEvent("inventory:client:ItemBox", src, QBCore.Shared.Items['coke_small_brick'], "remove", Config.CokeProcessing.SmallBrick)
-			TriggerClientEvent("inventory:client:ItemBox", src, QBCore.Shared.Items['coke_brick'], "add", Config.CokeProcessing.LargeBrick)
+			TriggerClientEvent("inventory:client:ItemBox", src, QBCore.Shared.Items['coke_small_brick'], "remove")
+			TriggerClientEvent("inventory:client:ItemBox", src, QBCore.Shared.Items['cokebaggy'], "add", Config.CokeProcessing.LargeBrick)
 			TriggerClientEvent('QBCore:Notify', src, Lang:t("success.coke_brick"), "success")
 		else
 			Player.Functions.AddItem('coke_small_brick', Config.CokeProcessing.SmallBrick)
 		end
 	end
+end)
+
+RegisterServerEvent('ps-drugprocessing:RemoveCWarehouse', function()
+	local Player = QBCore.Functions.GetPlayer(source)
+	
+	Player.Functions.RemoveItem('cocainekey', 1)
+	TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items['cocainekey'], "Remove", 1)
 end)

@@ -95,9 +95,10 @@ end)
 RegisterServerEvent('ps-drugprocessing:processMeth', function()
 	local src = source
 	local Player = QBCore.Functions.GetPlayer(src)
-	if Player.Functions.RemoveItem("methtray", 1) then
+	if Player.Functions.RemoveItem("methtray", 1) and Player.Functions.RemoveItem("empty_weed_bag", Config.MethProcessing.Meth) then
 		if Player.Functions.AddItem("meth", Config.MethProcessing.Meth) then
 			TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items["methtray"], "remove")
+			TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items["empty_weed_bag"], "remove")
 			TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items["meth"], "add", Config.MethProcessing.Meth)
 			TriggerClientEvent('QBCore:Notify', src, Lang:t("success.meth"), "success")
 		else
@@ -123,4 +124,11 @@ RegisterServerEvent('ps-drugprocessing:processFailDown', function()
 	Player.Functions.RemoveItem("chemicalvapor", 1)
 	TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items["chemicalvapor"], "remove")
 	TriggerClientEvent('QBCore:Notify', src, Lang:t("error.temp_too_low"), "error")
+end)
+
+RegisterServerEvent('ps-drugprocessing:RemoveEnterLab', function()
+	local Player = QBCore.Functions.GetPlayer(source)
+
+	Player.Functions.RemoveItem("methkey", 1)
+	TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items["methkey"], "remove")
 end)
